@@ -1,5 +1,6 @@
-import math
+import math, itertools
 
+from itertools import product
 from math import inf, sqrt
 
 
@@ -12,31 +13,29 @@ def main():
         for _ in range(2 * n):
             _, x, y = input().split()
             arr.append((int(x), int(y)))
-        print(arr)
 
-        minVal = math.inf
+        def dist(i, j):
+            return sqrt(pow(arr[i][0] - arr[j][0], 2) + pow(arr[i][1] - arr[j][1], 2))
 
-        def dfs(seen, val):
-            nonlocal minVal
-            if len(seen) == 2 * n:
-                minVal = min(minVal, val)
-            for i in range(2 * n):
-                if i in seen:
+        n *= 2
+        dp = [None] * 2**n
+        dp[-1] = 0
+
+        def dfs(mask):
+            if dp[mask] is not None:
+                return dp[mask]
+            val = inf
+            for i in range(n):
+                if (1 << i) & mask:
                     continue
-                seen.add(i)
-                for j in range(2 * n):
-                    if j in seen:
+                for j in range(i + 1, n):
+                    if (1 << j) & mask:
                         continue
-                    seen.add(j)
-                    newVal = math.sqrt(
-                        pow(arr[i][0] - arr[j][0], 2) + pow(arr[i][1] - arr[j][1], 2)
-                    )
-                    dfs(seen, val + newVal)
-                    seen.remove(j)
-                seen.remove(i)
+                    val = min(dist(i, j) + dfs(mask | 1 << i | 1 << j), val)
+            dp[mask] = val
+            return val
 
-        dfs(set(), 0)
-        print(minVal)
+        print(dfs(0))
 
 
 main()
